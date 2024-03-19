@@ -2,10 +2,11 @@ name: permission_handler_android_example
 description: Demonstrates how to use the permission_handler_android plugin.
 
 environment:
-  sdk: ">=2.15.0 <3.0.0"
+  sdk: ">=3.3.1 <4.0.0"
 
 dependencies:
-  baseflow_plugin_template: ^2.1.2
+  baseflow_plugin_template:
+    git: https://github.com/kumsumit/baseflow_plugin_template.git
   flutter:
     sdk: flutter
 
@@ -21,7 +22,8 @@ dev_dependencies:
     # the parent directory to use the current plugin's version.
     path: ../
 
-  url_launcher: ^6.0.12
+  url_launcher:
+      git: https://github.com/kumsumit/url_launcher.git
 
 flutter:
   uses-material-design: true
