@@ -164,7 +164,6 @@ final class ServiceManager {
 
     // Suppress deprecation warnings since its purpose is to support to be backwards compatible with
     // pre TIRAMISU versions of Android
-    @SuppressWarnings("deprecation")
     private List<ResolveInfo> getCallAppsList(PackageManager pm) {
         Intent callIntent = new Intent(Intent.ACTION_CALL);
         callIntent.setData(Uri.parse("tel:123123"));

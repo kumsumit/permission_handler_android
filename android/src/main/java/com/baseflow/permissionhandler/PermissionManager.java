@@ -105,6 +105,7 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
             }
         } else if (requestCode == PermissionConstants.PERMISSION_CODE_REQUEST_INSTALL_PACKAGES) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                assert activity != null;
                 status = activity.getPackageManager().canRequestPackageInstalls()
                     ? PermissionConstants.PERMISSION_STATUS_GRANTED
                     : PermissionConstants.PERMISSION_STATUS_DENIED;
@@ -114,6 +115,7 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
             }
         } else if (requestCode == PermissionConstants.PERMISSION_CODE_ACCESS_NOTIFICATION_POLICY) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                assert activity != null;
                 NotificationManager notificationManager = (NotificationManager) activity.getSystemService(Application.NOTIFICATION_SERVICE);
                 status = notificationManager.isNotificationPolicyAccessGranted()
                     ? PermissionConstants.PERMISSION_STATUS_GRANTED
@@ -122,8 +124,9 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
             } else {
                 return false;
             }
-        } else if (requestCode == PermissionConstants.PERMISSION_CODE_SCHEDULE_EXACT_ALARM) {
+        } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                assert activity != null;
                 AlarmManager alarmManager = (AlarmManager) activity.getSystemService(Context.ALARM_SERVICE);
                 status = alarmManager.canScheduleExactAlarms()
                     ? PermissionConstants.PERMISSION_STATUS_GRANTED
@@ -132,8 +135,6 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
             } else {
                 return false;
             }
-        } else {
-            return false;
         }
 
         requestResults.put(permission, status);
@@ -141,6 +142,7 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
 
         // Post result if all requests have been handled.
         if (pendingRequestCount == 0) {
+            assert this.successCallback != null;
             this.successCallback.onSuccess(requestResults);
         }
         return true;
@@ -227,6 +229,7 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
 
         // Post result if all requests have been handled.
         if (pendingRequestCount == 0) {
+            assert this.successCallback != null;
             this.successCallback.onSuccess(requestResults);
         }
         return true;
@@ -383,7 +386,7 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
         }
 
         // Request runtime permissions.
-        if (permissionsToRequest.size() > 0) {
+        if (!permissionsToRequest.isEmpty()) {
             final String[] requestPermissions = permissionsToRequest.toArray(new String[0]);
             ActivityCompat.requestPermissions(
                 activity,
@@ -393,6 +396,7 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
 
         // Post results immediately if no requests are pending.
         if (pendingRequestCount == 0) {
+            assert this.successCallback != null;
             this.successCallback.onSuccess(requestResults);
         }
     }
@@ -425,7 +429,7 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
         }
 
         //if no permissions were found then there is an issue and permission is not set in Android manifest
-        if (names.size() == 0) {
+        if (names.isEmpty()) {
             Log.d(PermissionConstants.LOG_TAG, "No permissions found in manifest for: " + names + permission);
 
             // On Android below M, the android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS flag in AndroidManifest.xml
@@ -537,9 +541,11 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
     private void launchSpecialPermission(String permissionAction, int requestCode) {
         Intent intent = new Intent(permissionAction);
         if (!permissionAction.equals(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) {
+            assert activity != null;
             String packageName = activity.getPackageName();
             intent.setData(Uri.parse("package:" + packageName));
         }
+        assert activity != null;
         activity.startActivityForResult(intent, requestCode);
         pendingRequestCount++;
     }
