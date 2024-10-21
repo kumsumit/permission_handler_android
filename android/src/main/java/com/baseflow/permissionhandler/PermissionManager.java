@@ -136,17 +136,10 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
             } else {
                 return false;
             }
-<<<<<<< HEAD
-        } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                assert activity != null;
-                AlarmManager alarmManager = (AlarmManager) activity.getSystemService(Context.ALARM_SERVICE);
-=======
         } else if (requestCode == PermissionConstants.PERMISSION_CODE_SCHEDULE_EXACT_ALARM) {
             permission = PermissionConstants.PERMISSION_GROUP_SCHEDULE_EXACT_ALARM;
             AlarmManager alarmManager = (AlarmManager) activity.getSystemService(Context.ALARM_SERVICE);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
->>>>>>> refs/remotes/origin/main
                 status = alarmManager.canScheduleExactAlarms()
                     ? PermissionConstants.PERMISSION_STATUS_GRANTED
                     : PermissionConstants.PERMISSION_STATUS_DENIED;
@@ -159,12 +152,7 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
         pendingRequestCount--;
 
         // Post result if all requests have been handled.
-<<<<<<< HEAD
-        if (pendingRequestCount == 0) {
-            assert this.successCallback != null;
-=======
         if (successCallback != null && pendingRequestCount == 0) {
->>>>>>> refs/remotes/origin/main
             this.successCallback.onSuccess(requestResults);
         }
         return true;
@@ -288,12 +276,7 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
         pendingRequestCount -= grantResults.length;
 
         // Post result if all requests have been handled.
-<<<<<<< HEAD
-        if (pendingRequestCount == 0) {
-            assert this.successCallback != null;
-=======
         if (successCallback != null && pendingRequestCount == 0) {
->>>>>>> refs/remotes/origin/main
             this.successCallback.onSuccess(requestResults);
         }
         return true;
@@ -454,12 +437,7 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
         }
 
         // Post results immediately if no requests are pending.
-<<<<<<< HEAD
-        if (pendingRequestCount == 0) {
-            assert this.successCallback != null;
-=======
         if (this.successCallback != null && pendingRequestCount == 0) {
->>>>>>> refs/remotes/origin/main
             this.successCallback.onSuccess(requestResults);
         }
     }
