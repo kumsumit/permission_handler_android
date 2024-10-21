@@ -2,7 +2,7 @@ name: permission_handler_android
 publish_to: none
 description: Permission plugin for Flutter. This plugin provides the Android API to request and check permissions.
 homepage: https://github.com/baseflow/flutter-permission-handler
-version: 11.0.1
+version: 12.0.13
 
 environment:
   sdk: ">=3.1.0 <4.0.0"
