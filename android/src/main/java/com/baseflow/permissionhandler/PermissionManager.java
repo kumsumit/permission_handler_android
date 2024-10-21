@@ -83,7 +83,8 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
             return false;
         }
 
-        int status, permission;
+        int status = PermissionConstants.PERMISSION_STATUS_DENIED;
+        int permission = PermissionConstants.PERMISSION_GROUP_UNKNOWN;
 
         if (requestCode == PermissionConstants.PERMISSION_CODE_IGNORE_BATTERY_OPTIMIZATIONS) {
             permission = PermissionConstants.PERMISSION_GROUP_IGNORE_BATTERY_OPTIMIZATIONS;
@@ -117,7 +118,6 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
             }
         } else if (requestCode == PermissionConstants.PERMISSION_CODE_REQUEST_INSTALL_PACKAGES) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                assert activity != null;
                 status = activity.getPackageManager().canRequestPackageInstalls()
                     ? PermissionConstants.PERMISSION_STATUS_GRANTED
                     : PermissionConstants.PERMISSION_STATUS_DENIED;
@@ -127,11 +127,12 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
             }
         } else if (requestCode == PermissionConstants.PERMISSION_CODE_ACCESS_NOTIFICATION_POLICY) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                assert activity != null;
                 NotificationManager notificationManager = (NotificationManager) activity.getSystemService(Application.NOTIFICATION_SERVICE);
-                status = notificationManager.isNotificationPolicyAccessGranted()
-                    ? PermissionConstants.PERMISSION_STATUS_GRANTED
-                    : PermissionConstants.PERMISSION_STATUS_DENIED;
+                if(notificationManager != null){
+                    status = notificationManager.isNotificationPolicyAccessGranted()
+                            ? PermissionConstants.PERMISSION_STATUS_GRANTED
+                            : PermissionConstants.PERMISSION_STATUS_DENIED;
+                }
                 permission = PermissionConstants.PERMISSION_GROUP_ACCESS_NOTIFICATION_POLICY;
             } else {
                 return false;
@@ -139,7 +140,7 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
         } else if (requestCode == PermissionConstants.PERMISSION_CODE_SCHEDULE_EXACT_ALARM) {
             permission = PermissionConstants.PERMISSION_GROUP_SCHEDULE_EXACT_ALARM;
             AlarmManager alarmManager = (AlarmManager) activity.getSystemService(Context.ALARM_SERVICE);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (alarmManager != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 status = alarmManager.canScheduleExactAlarms()
                     ? PermissionConstants.PERMISSION_STATUS_GRANTED
                     : PermissionConstants.PERMISSION_STATUS_DENIED;
