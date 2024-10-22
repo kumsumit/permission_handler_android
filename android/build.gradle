@@ -27,7 +27,7 @@ android {
       namespace 'com.baseflow.permissionhandler'
     }
     compileSdk 35
-
+    ndkVersion = '28.0.12433566'
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
