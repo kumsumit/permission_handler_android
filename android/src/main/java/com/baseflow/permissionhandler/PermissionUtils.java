@@ -27,78 +27,65 @@ public class PermissionUtils {
 
     @PermissionConstants.PermissionGroup
     static int parseManifestName(String permission) {
-        switch (permission) {
-            case Manifest.permission.WRITE_CALENDAR:
-            case Manifest.permission.READ_CALENDAR:
-                return PermissionConstants.PERMISSION_GROUP_CALENDAR;
-            case Manifest.permission.CAMERA:
-                return PermissionConstants.PERMISSION_GROUP_CAMERA;
-            case Manifest.permission.READ_CONTACTS:
-            case Manifest.permission.WRITE_CONTACTS:
-            case Manifest.permission.GET_ACCOUNTS:
-                return PermissionConstants.PERMISSION_GROUP_CONTACTS;
-            case Manifest.permission.ACCESS_BACKGROUND_LOCATION:
-                return PermissionConstants.PERMISSION_GROUP_LOCATION_ALWAYS;
-            case Manifest.permission.ACCESS_COARSE_LOCATION:
-            case Manifest.permission.ACCESS_FINE_LOCATION:
-                return PermissionConstants.PERMISSION_GROUP_LOCATION;
-            case Manifest.permission.RECORD_AUDIO:
-                return PermissionConstants.PERMISSION_GROUP_MICROPHONE;
-            case Manifest.permission.READ_PHONE_STATE:
-            case Manifest.permission.READ_PHONE_NUMBERS:
-            case Manifest.permission.CALL_PHONE:
-            case Manifest.permission.READ_CALL_LOG:
-            case Manifest.permission.WRITE_CALL_LOG:
-            case Manifest.permission.ADD_VOICEMAIL:
-            case Manifest.permission.USE_SIP:
-                return PermissionConstants.PERMISSION_GROUP_PHONE;
-            case Manifest.permission.BODY_SENSORS:
-                return PermissionConstants.PERMISSION_GROUP_SENSORS;
-            case Manifest.permission.BODY_SENSORS_BACKGROUND:
-                return PermissionConstants.PERMISSION_GROUP_SENSORS_ALWAYS;
-            case Manifest.permission.SEND_SMS:
-            case Manifest.permission.RECEIVE_SMS:
-            case Manifest.permission.READ_SMS:
-            case Manifest.permission.RECEIVE_WAP_PUSH:
-            case Manifest.permission.RECEIVE_MMS:
-                return PermissionConstants.PERMISSION_GROUP_SMS;
-            case Manifest.permission.READ_EXTERNAL_STORAGE:
-            case Manifest.permission.WRITE_EXTERNAL_STORAGE:
-                return PermissionConstants.PERMISSION_GROUP_STORAGE;
-            case Manifest.permission.ACCESS_MEDIA_LOCATION:
-                return PermissionConstants.PERMISSION_GROUP_ACCESS_MEDIA_LOCATION;
-            case Manifest.permission.ACTIVITY_RECOGNITION:
-                return PermissionConstants.PERMISSION_GROUP_ACTIVITY_RECOGNITION;
-            case Manifest.permission.MANAGE_EXTERNAL_STORAGE:
-                return PermissionConstants.PERMISSION_GROUP_MANAGE_EXTERNAL_STORAGE;
-            case Manifest.permission.SYSTEM_ALERT_WINDOW:
-                return PermissionConstants.PERMISSION_GROUP_SYSTEM_ALERT_WINDOW;
-            case Manifest.permission.REQUEST_INSTALL_PACKAGES:
-                return PermissionConstants.PERMISSION_GROUP_REQUEST_INSTALL_PACKAGES;
-            case Manifest.permission.ACCESS_NOTIFICATION_POLICY:
-                return PermissionConstants.PERMISSION_GROUP_ACCESS_NOTIFICATION_POLICY;
-            case Manifest.permission.BLUETOOTH_SCAN:
-                return PermissionConstants.PERMISSION_GROUP_BLUETOOTH_SCAN;
-            case Manifest.permission.BLUETOOTH_ADVERTISE:
-                return PermissionConstants.PERMISSION_GROUP_BLUETOOTH_ADVERTISE;
-            case Manifest.permission.BLUETOOTH_CONNECT:
-                return PermissionConstants.PERMISSION_GROUP_BLUETOOTH_CONNECT;
-            case Manifest.permission.POST_NOTIFICATIONS:
-                return PermissionConstants.PERMISSION_GROUP_NOTIFICATION;
-            case Manifest.permission.NEARBY_WIFI_DEVICES:
-                return PermissionConstants.PERMISSION_GROUP_NEARBY_WIFI_DEVICES;
-            case Manifest.permission.READ_MEDIA_IMAGES:
-                return PermissionConstants.PERMISSION_GROUP_PHOTOS;
-            case Manifest.permission.READ_MEDIA_VIDEO:
-                return PermissionConstants.PERMISSION_GROUP_VIDEOS;
-            case Manifest.permission.READ_MEDIA_AUDIO:
-                return PermissionConstants.PERMISSION_GROUP_AUDIO;
-            case Manifest.permission.SCHEDULE_EXACT_ALARM:
-                return PermissionConstants.PERMISSION_GROUP_SCHEDULE_EXACT_ALARM;
-            default:
-                return PermissionConstants.PERMISSION_GROUP_UNKNOWN;
-        }
+        return switch (permission) {
+            case Manifest.permission.WRITE_CALENDAR, Manifest.permission.READ_CALENDAR ->
+                    PermissionConstants.PERMISSION_GROUP_CALENDAR;
+            case Manifest.permission.CAMERA -> PermissionConstants.PERMISSION_GROUP_CAMERA;
+            case Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS,
+                 Manifest.permission.GET_ACCOUNTS -> PermissionConstants.PERMISSION_GROUP_CONTACTS;
+            case Manifest.permission.ACCESS_BACKGROUND_LOCATION ->
+                    PermissionConstants.PERMISSION_GROUP_LOCATION_ALWAYS;
+            case Manifest.permission.ACCESS_COARSE_LOCATION,
+                 Manifest.permission.ACCESS_FINE_LOCATION ->
+                    PermissionConstants.PERMISSION_GROUP_LOCATION;
+            case Manifest.permission.RECORD_AUDIO ->
+                    PermissionConstants.PERMISSION_GROUP_MICROPHONE;
+            case Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_PHONE_NUMBERS,
+                 Manifest.permission.CALL_PHONE, Manifest.permission.READ_CALL_LOG,
+                 Manifest.permission.WRITE_CALL_LOG, Manifest.permission.ADD_VOICEMAIL,
+                 Manifest.permission.USE_SIP -> PermissionConstants.PERMISSION_GROUP_PHONE;
+            case Manifest.permission.BODY_SENSORS -> PermissionConstants.PERMISSION_GROUP_SENSORS;
+            case Manifest.permission.BODY_SENSORS_BACKGROUND ->
+                    PermissionConstants.PERMISSION_GROUP_SENSORS_ALWAYS;
+            case Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS,
+                 Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_WAP_PUSH,
+                 Manifest.permission.RECEIVE_MMS -> PermissionConstants.PERMISSION_GROUP_SMS;
+            case Manifest.permission.READ_EXTERNAL_STORAGE,
+                 Manifest.permission.WRITE_EXTERNAL_STORAGE ->
+                    PermissionConstants.PERMISSION_GROUP_STORAGE;
+            case Manifest.permission.ACCESS_MEDIA_LOCATION ->
+                    PermissionConstants.PERMISSION_GROUP_ACCESS_MEDIA_LOCATION;
+            case Manifest.permission.ACTIVITY_RECOGNITION ->
+                    PermissionConstants.PERMISSION_GROUP_ACTIVITY_RECOGNITION;
+            case Manifest.permission.MANAGE_EXTERNAL_STORAGE ->
+                    PermissionConstants.PERMISSION_GROUP_MANAGE_EXTERNAL_STORAGE;
+            case Manifest.permission.SYSTEM_ALERT_WINDOW ->
+                    PermissionConstants.PERMISSION_GROUP_SYSTEM_ALERT_WINDOW;
+            case Manifest.permission.REQUEST_INSTALL_PACKAGES ->
+                    PermissionConstants.PERMISSION_GROUP_REQUEST_INSTALL_PACKAGES;
+            case Manifest.permission.ACCESS_NOTIFICATION_POLICY ->
+                    PermissionConstants.PERMISSION_GROUP_ACCESS_NOTIFICATION_POLICY;
+            case Manifest.permission.BLUETOOTH_SCAN ->
+                    PermissionConstants.PERMISSION_GROUP_BLUETOOTH_SCAN;
+            case Manifest.permission.BLUETOOTH_ADVERTISE ->
+                    PermissionConstants.PERMISSION_GROUP_BLUETOOTH_ADVERTISE;
+            case Manifest.permission.BLUETOOTH_CONNECT ->
+                    PermissionConstants.PERMISSION_GROUP_BLUETOOTH_CONNECT;
+            case Manifest.permission.POST_NOTIFICATIONS ->
+                    PermissionConstants.PERMISSION_GROUP_NOTIFICATION;
+            case Manifest.permission.NEARBY_WIFI_DEVICES ->
+                    PermissionConstants.PERMISSION_GROUP_NEARBY_WIFI_DEVICES;
+            case Manifest.permission.READ_MEDIA_IMAGES ->
+                    PermissionConstants.PERMISSION_GROUP_PHOTOS;
+            case Manifest.permission.READ_MEDIA_VIDEO ->
+                    PermissionConstants.PERMISSION_GROUP_VIDEOS;
+            case Manifest.permission.READ_MEDIA_AUDIO -> PermissionConstants.PERMISSION_GROUP_AUDIO;
+            case Manifest.permission.SCHEDULE_EXACT_ALARM ->
+                    PermissionConstants.PERMISSION_GROUP_SCHEDULE_EXACT_ALARM;
+            default -> PermissionConstants.PERMISSION_GROUP_UNKNOWN;
+        };
     }
+
 
     @TargetApi(22)
     static List<String> getManifestNames(Context context, @PermissionConstants.PermissionGroup int permission) {
@@ -187,10 +174,8 @@ public class PermissionUtils {
                 break;
 
             case PermissionConstants.PERMISSION_GROUP_SENSORS:
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
-                    if (hasPermissionInManifest(context, permissionNames, Manifest.permission.BODY_SENSORS)) {
-                        permissionNames.add(Manifest.permission.BODY_SENSORS);
-                    }
+                if (hasPermissionInManifest(context, permissionNames, Manifest.permission.BODY_SENSORS)) {
+                    permissionNames.add(Manifest.permission.BODY_SENSORS);
                 }
                 break;
             case PermissionConstants.PERMISSION_GROUP_SENSORS_ALWAYS:
@@ -352,12 +337,16 @@ public class PermissionUtils {
             case PermissionConstants.PERMISSION_GROUP_SCHEDULE_EXACT_ALARM:
                 // The SCHEDULE_EXACT_ALARM permission is introduced in Android S, before Android 31 it should alway return Granted
                 if (hasPermissionInManifest(context, permissionNames, Manifest.permission.SCHEDULE_EXACT_ALARM))
-                    permissionNames.add(Manifest.permission.SCHEDULE_EXACT_ALARM);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        permissionNames.add(Manifest.permission.SCHEDULE_EXACT_ALARM);
+                    }
                 break;
             case PermissionConstants.PERMISSION_GROUP_MEDIA_LIBRARY:
             case PermissionConstants.PERMISSION_GROUP_REMINDERS:
             case PermissionConstants.PERMISSION_GROUP_UNKNOWN:
                 return null;
+            case PermissionConstants.PERMISSION_GROUP_ASSISTANT:
+                break;
         }
 
         return permissionNames;
@@ -385,6 +374,7 @@ public class PermissionUtils {
                 return false;
             }
 
+            assert info.requestedPermissions != null;
             confirmedPermissions = new ArrayList<>(Arrays.asList(info.requestedPermissions));
             for (String r : confirmedPermissions) {
                 if (r.equals(permission)) {

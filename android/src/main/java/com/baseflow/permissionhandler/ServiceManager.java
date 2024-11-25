@@ -11,11 +11,8 @@ import android.content.pm.ResolveInfo;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Build.VERSION;
-import android.os.Build.VERSION_CODES;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
-import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.List;
@@ -106,21 +103,15 @@ final class ServiceManager {
             }
 
             return locationManager.isLocationEnabled();
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            return isLocationServiceEnabledKitKat(context);
         } else {
-            return isLocationServiceEnablePreKitKat(context);
+            return isLocationServiceEnabledKitKat(context);
         }
     }
 
     // Suppress deprecation warnings since its purpose is to support to be backwards compatible with
     // pre Pie versions of Android.
-    @SuppressWarnings("deprecation")
     private static boolean isLocationServiceEnabledKitKat(Context context)
     {
-        if (Build.VERSION.SDK_INT < VERSION_CODES.KITKAT) {
-            return false;
-        }
 
         final int locationMode;
 
@@ -136,28 +127,12 @@ final class ServiceManager {
         return locationMode != Settings.Secure.LOCATION_MODE_OFF;
     }
 
-    // Suppress deprecation warnings since its purpose is to support to be backwards compatible with
-    // pre KitKat versions of Android.
-    @SuppressWarnings("deprecation")
-    private static boolean isLocationServiceEnablePreKitKat(Context context)
-    {
-        if (VERSION.SDK_INT >= VERSION_CODES.KITKAT)
-            return false;
 
-        final String locationProviders = Settings.Secure.getString(
-                context.getContentResolver(),
-                Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
-        return !TextUtils.isEmpty(locationProviders);
-    }
     // Suppress deprecation warnings since its purpose is to support to be backwards compatible with
     // pre S versions of Android
-    @SuppressWarnings("deprecation")
     private boolean isBluetoothServiceEnabled(Context context) {
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            return BluetoothAdapter.getDefaultAdapter().isEnabled();
-        } 
-        
         BluetoothManager manager = (BluetoothManager) context.getSystemService(BLUETOOTH_SERVICE);
+        assert manager != null;
         final BluetoothAdapter adapter = manager.getAdapter();
         return adapter.isEnabled();
     }

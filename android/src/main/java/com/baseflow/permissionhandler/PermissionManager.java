@@ -539,6 +539,7 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
                     }
                 } else if (permission == PermissionConstants.PERMISSION_GROUP_ACCESS_NOTIFICATION_POLICY) {
                     NotificationManager notificationManager = (NotificationManager) context.getSystemService(Application.NOTIFICATION_SERVICE);
+                    assert notificationManager != null;
                     int status = notificationManager.isNotificationPolicyAccessGranted()
                         ? PermissionConstants.PERMISSION_STATUS_GRANTED
                         : PermissionConstants.PERMISSION_STATUS_DENIED;
@@ -546,6 +547,7 @@ final class PermissionManager implements PluginRegistry.ActivityResultListener, 
                 } else if (permission == PermissionConstants.PERMISSION_GROUP_SCHEDULE_EXACT_ALARM) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                        assert alarmManager != null;
                         int status = alarmManager.canScheduleExactAlarms()
                             ? PermissionConstants.PERMISSION_STATUS_GRANTED
                             : PermissionConstants.PERMISSION_STATUS_DENIED;
