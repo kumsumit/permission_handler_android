@@ -23,7 +23,7 @@ apply plugin: 'com.android.library'
 
 android {
     namespace = "com.baseflow.permissionhandler"
-    compileSdk 36
+    compileSdk = 36
     ndkVersion = "29.0.14206865"
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_21
@@ -31,6 +31,6 @@ android {
     }
 
     defaultConfig {
-        minSdk 24
+        minSdk = 24
     }
 }
