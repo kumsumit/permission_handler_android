@@ -1,36 +1,28 @@
-group 'com.baseflow.permissionhandler'
-version '1.0'
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.2'
-    }
+plugins {
+    id("com.android.library")
 }
 
-rootProject.allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
+group = "com.baseflow.permissionhandler"
+version = "1.0"
 
-apply plugin: 'com.android.library'
+repositories {
+    google()
+    mavenCentral()
+}
 
 android {
     namespace = "com.baseflow.permissionhandler"
-    compileSdk = 36
-    ndkVersion = "29.0.14206865"
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
-    }
+    compileSdk = 37
+    ndkVersion = "30.0.14904198"
 
     defaultConfig {
         minSdk = 24
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 }
