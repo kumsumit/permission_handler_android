@@ -5,8 +5,8 @@ homepage: https://github.com/baseflow/flutter-permission-handler
 version: 12.0.13
 
 environment:
-  sdk: ">=3.1.0 <4.0.0"
-  flutter: ">=3.13.0"
+  sdk: ">=3.11.0 <4.0.0"
+  flutter: ">=3.41.0"
 
 flutter:
   plugin:
@@ -23,7 +23,6 @@ dependencies:
     git: https://github.com/kumsumit/permission_handler_platform_interface.git
 
 dev_dependencies:
-  flutter_lints: 
-    git: https://github.com/kumsumit/flutter_lints.git
+  flutter_lints: ^6.0.0
   plugin_platform_interface:
     git: https://github.com/kumsumit/plugin_platform_interface.git
