@@ -22,7 +22,7 @@ class PermissionHandlerPlugin : FlutterPlugin, ActivityAware {
     private var pluginBinding: ActivityPluginBinding? = null
     private var methodCallHandler: MethodCallHandlerImpl? = null
 
-    override fun onAttachedToEngine(@NonNull binding: FlutterPluginBinding) {
+    override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         permissionManager = PermissionManager(binding.applicationContext)
         startListening(
             binding.applicationContext,
@@ -30,17 +30,17 @@ class PermissionHandlerPlugin : FlutterPlugin, ActivityAware {
         )
     }
 
-    override fun onDetachedFromEngine(@NonNull binding: FlutterPluginBinding) {
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         stopListening()
     }
 
-    override fun onAttachedToActivity(@NonNull binding: ActivityPluginBinding) {
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         startListeningToActivity(binding.activity)
         pluginBinding = binding
         registerListeners()
     }
 
-    override fun onReattachedToActivityForConfigChanges(@NonNull binding: ActivityPluginBinding) {
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
         onAttachedToActivity(binding)
     }
 

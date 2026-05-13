@@ -105,7 +105,7 @@ object PermissionConstants {
     const val PERMISSION_STATUS_LIMITED = 3
     const val PERMISSION_STATUS_NEVER_ASK_AGAIN = 4
 
-    @Target(AnnotationTarget.TYPE)
+    @Target(AnnotationTarget.TYPE, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.TYPE_USE)
     @Retention(AnnotationRetention.SOURCE)
     @IntDef(
         PERMISSION_STATUS_DENIED,
