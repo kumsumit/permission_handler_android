@@ -5,16 +5,18 @@ allprojects {
     }
 }
 
-rootProject.buildDir = '../build'
+rootProject.buildDir = file("../build")
+
 subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
-    project.evaluationDependsOn(':app')
+    buildDir = file("${rootProject.buildDir}/${project.name}")
 }
 
-tasks.register("clean", Delete) {
-    delete rootProject.buildDir
+subprojects {
+    evaluationDependsOn(":app")
+}
+
+tasks.register<Delete>("clean") {
+    delete(rootProject.buildDir)
 }
 
 // Build the plugin project with warnings enabled. This is here rather than
@@ -23,8 +25,10 @@ tasks.register("clean", Delete) {
 // builds with).
 gradle.projectsEvaluated {
     project(":permission_handler_android") {
-        tasks.withType(JavaCompile) {
-            options.compilerArgs << "-Xlint:all" << "-Werror"
+        tasks.withType<JavaCompile>().configureEach {
+            options.compilerArgs.addAll(
+                listOf("-Xlint:all", "-Werror")
+            )
         }
     }
 }

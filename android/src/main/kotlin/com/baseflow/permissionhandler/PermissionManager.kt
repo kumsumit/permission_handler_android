@@ -84,11 +84,11 @@ class PermissionManager(
             }
 
             PermissionConstants.PERMISSION_CODE_MANAGE_EXTERNAL_STORAGE -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    status = if (Environment.isExternalStorageManager)
-                        PermissionConstants.PERMISSION_STATUS_GRANTED
-                    else
-                        PermissionConstants.PERMISSION_STATUS_DENIED
+                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                     status = if (Environment.isExternalStorageManager())
+                         PermissionConstants.PERMISSION_STATUS_GRANTED
+                     else
+                         PermissionConstants.PERMISSION_STATUS_DENIED
                 } else {
                     return false
                 }
@@ -525,10 +525,10 @@ class PermissionManager(
                         permissionStatuses.add(PermissionConstants.PERMISSION_STATUS_RESTRICTED)
                     }
 
-                    val status = if (Environment.isExternalStorageManager)
-                        PermissionConstants.PERMISSION_STATUS_GRANTED
-                    else
-                        PermissionConstants.PERMISSION_STATUS_DENIED
+                     val status = if (Environment.isExternalStorageManager())
+                         PermissionConstants.PERMISSION_STATUS_GRANTED
+                     else
+                         PermissionConstants.PERMISSION_STATUS_DENIED
                     permissionStatuses.add(status)
                 } else if (permission == PermissionConstants.PERMISSION_GROUP_SYSTEM_ALERT_WINDOW) {
                     val status = if (Settings.canDrawOverlays(context))
