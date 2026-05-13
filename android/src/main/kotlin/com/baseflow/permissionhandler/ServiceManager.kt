@@ -1,18 +1,16 @@
 package com.baseflow.permissionhandler
 
-import android.Manifest
-import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
-import android.net.Uri
+import android.location.LocationManager
 import android.os.Build
 import android.provider.Settings
 import android.telephony.TelephonyManager
 import android.util.Log
-import androidx.annotation.RequiresApi
+import androidx.core.net.toUri
 
 class ServiceManager {
     fun interface SuccessCallback {
@@ -64,7 +62,7 @@ class ServiceManager {
                 val telephonyManager = context
                     .getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
 
-                if (telephonyManager == null || telephonyManager.phoneType == TelephonyManager.PHONE_TYPE_NONE) {
+                if (telephonyManager.phoneType == TelephonyManager.PHONE_TYPE_NONE) {
                     successCallback.onSuccess(PermissionConstants.SERVICE_STATUS_NOT_APPLICABLE)
                     return
                 }
@@ -86,10 +84,7 @@ class ServiceManager {
             }
 
             PermissionConstants.PERMISSION_GROUP_IGNORE_BATTERY_OPTIMIZATIONS -> {
-                val serviceStatus = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-                    PermissionConstants.SERVICE_STATUS_ENABLED
-                else
-                    PermissionConstants.SERVICE_STATUS_NOT_APPLICABLE
+                val serviceStatus = PermissionConstants.SERVICE_STATUS_ENABLED
                 successCallback.onSuccess(serviceStatus)
                 return
             }
@@ -135,7 +130,7 @@ class ServiceManager {
     // pre TIRAMISU versions of Android
     private fun getCallAppsList(pm: PackageManager): List<ResolveInfo> {
         val callIntent = Intent(Intent.ACTION_CALL)
-        callIntent.data = Uri.parse("tel:123123")
+        callIntent.data = "tel:123123".toUri()
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             pm.queryIntentActivities(callIntent, PackageManager.ResolveInfoFlags.of(0))

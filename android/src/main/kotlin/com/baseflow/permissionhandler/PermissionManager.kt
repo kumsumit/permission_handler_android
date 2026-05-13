@@ -1,6 +1,7 @@
 package com.baseflow.permissionhandler
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlarmManager
 import android.app.Application
@@ -8,26 +9,22 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.os.PowerManager
 import android.provider.Settings
+import android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
 import android.util.Log
-import androidx.annotation.NonNull
-import androidx.annotation.Nullable
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import io.flutter.plugin.common.PluginRegistry
-import java.util.*
 
 class PermissionManager(
-    @NonNull private val context: Context
+    private val context: Context
 ) : PluginRegistry.ActivityResultListener, PluginRegistry.RequestPermissionsResultListener {
-    @Nullable
     private var successCallback: RequestPermissionsSuccessCallback? = null
-    @Nullable
     private var activity: Activity? = null
     /**
      * The number of pending permission requests.
@@ -46,14 +43,13 @@ class PermissionManager(
      */
     private var requestResults: MutableMap<Int, Int>? = null
 
-    fun setActivity(@Nullable activity: Activity?) {
+    fun setActivity(activity: Activity?) {
         this.activity = activity
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
-        if (activity == null) {
-            return false
-        }
+        // FIX #3: capture activity into a local val for safe smart-casting throughout this method.
+        val currentActivity = activity ?: return false
 
         // The [onActivityResult] with a [requestResult] that is `null` when the Application was
         // terminated while not in the foreground with a permission request in progress (e.g. when
@@ -70,25 +66,20 @@ class PermissionManager(
         when (requestCode) {
             PermissionConstants.PERMISSION_CODE_IGNORE_BATTERY_OPTIMIZATIONS -> {
                 permission = PermissionConstants.PERMISSION_GROUP_IGNORE_BATTERY_OPTIMIZATIONS
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     val packageName = context.packageName
-                    val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-                    status = if (pm != null && pm.isIgnoringBatteryOptimizations(packageName))
-                        PermissionConstants.PERMISSION_STATUS_GRANTED
-                    else
-                        PermissionConstants.PERMISSION_STATUS_DENIED
-                } else {
-                    status = PermissionConstants.PERMISSION_STATUS_RESTRICTED
-                }
+                        val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+                        if (pm.isIgnoringBatteryOptimizations(packageName))
+                            PermissionConstants.PERMISSION_STATUS_GRANTED
+                        else
+                            PermissionConstants.PERMISSION_STATUS_DENIED
             }
 
             PermissionConstants.PERMISSION_CODE_MANAGE_EXTERNAL_STORAGE -> {
-                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                     status = if (Environment.isExternalStorageManager())
-                         PermissionConstants.PERMISSION_STATUS_GRANTED
-                     else
-                         PermissionConstants.PERMISSION_STATUS_DENIED
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    status = if (Environment.isExternalStorageManager())
+                        PermissionConstants.PERMISSION_STATUS_GRANTED
+                    else
+                        PermissionConstants.PERMISSION_STATUS_DENIED
                 } else {
                     return false
                 }
@@ -96,20 +87,16 @@ class PermissionManager(
             }
 
             PermissionConstants.PERMISSION_CODE_SYSTEM_ALERT_WINDOW -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    status = if (Settings.canDrawOverlays(activity))
-                        PermissionConstants.PERMISSION_STATUS_GRANTED
-                    else
-                        PermissionConstants.PERMISSION_STATUS_DENIED
-                    permission = PermissionConstants.PERMISSION_GROUP_SYSTEM_ALERT_WINDOW
-                } else {
-                    return false
-                }
+                status = if (Settings.canDrawOverlays(currentActivity))
+                    PermissionConstants.PERMISSION_STATUS_GRANTED
+                else
+                    PermissionConstants.PERMISSION_STATUS_DENIED
+                permission = PermissionConstants.PERMISSION_GROUP_SYSTEM_ALERT_WINDOW
             }
 
             PermissionConstants.PERMISSION_CODE_REQUEST_INSTALL_PACKAGES -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    status = if (activity.packageManager.canRequestPackageInstalls())
+                    status = if (currentActivity.packageManager.canRequestPackageInstalls())
                         PermissionConstants.PERMISSION_STATUS_GRANTED
                     else
                         PermissionConstants.PERMISSION_STATUS_DENIED
@@ -120,30 +107,26 @@ class PermissionManager(
             }
 
             PermissionConstants.PERMISSION_CODE_ACCESS_NOTIFICATION_POLICY -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    val notificationManager = activity.getSystemService(Application.NOTIFICATION_SERVICE) as NotificationManager
-                    if (notificationManager != null) {
-                        status = if (notificationManager.isNotificationPolicyAccessGranted)
-                            PermissionConstants.PERMISSION_STATUS_GRANTED
-                        else
-                            PermissionConstants.PERMISSION_STATUS_DENIED
-                    }
-                    permission = PermissionConstants.PERMISSION_GROUP_ACCESS_NOTIFICATION_POLICY
-                } else {
-                    return false
-                }
+                // FIX #4: always assign status; if the service is unavailable, fall back to DENIED.
+                val notificationManager =
+                    currentActivity.getSystemService(Application.NOTIFICATION_SERVICE) as? NotificationManager
+                status = if (notificationManager != null && notificationManager.isNotificationPolicyAccessGranted)
+                    PermissionConstants.PERMISSION_STATUS_GRANTED
+                else
+                    PermissionConstants.PERMISSION_STATUS_DENIED
+                permission = PermissionConstants.PERMISSION_GROUP_ACCESS_NOTIFICATION_POLICY
             }
 
             PermissionConstants.PERMISSION_CODE_SCHEDULE_EXACT_ALARM -> {
                 permission = PermissionConstants.PERMISSION_GROUP_SCHEDULE_EXACT_ALARM
-                val alarmManager = activity.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-                if (alarmManager != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    status = if (alarmManager.canScheduleExactAlarms())
+                val alarmManager = currentActivity.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                status = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    if (alarmManager.canScheduleExactAlarms())
                         PermissionConstants.PERMISSION_STATUS_GRANTED
                     else
                         PermissionConstants.PERMISSION_STATUS_DENIED
                 } else {
-                    status = PermissionConstants.PERMISSION_STATUS_GRANTED
+                    PermissionConstants.PERMISSION_STATUS_GRANTED
                 }
             }
         }
@@ -160,8 +143,8 @@ class PermissionManager(
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
-        @NonNull permissions: Array<String>,
-        @NonNull grantResults: IntArray
+        permissions: Array<String>,
+        grantResults: IntArray
     ): Boolean {
         if (requestCode != PermissionConstants.PERMISSION_CODE) {
             pendingRequestCount = 0
@@ -182,7 +165,7 @@ class PermissionManager(
 
         // Calendar permissions are split between WRITE and READ in Android, and split between WRITE
         // and FULL ACCESS in the plugin. We need special logic for this translation.
-        val permissionList = Arrays.asList(*permissions)
+        val permissionList = listOf(*permissions)
         val calendarWriteIndex = permissionList.indexOf(Manifest.permission.WRITE_CALENDAR)
         // WRITE -> WRITE.
         if (calendarWriteIndex >= 0) {
@@ -290,7 +273,7 @@ class PermissionManager(
      * @param successCallback the callback to which the resolved status must be supplied.
      */
     fun checkPermissionStatus(
-        permission: @PermissionConstants.PermissionGroup Int,
+        @PermissionConstants.PermissionGroup permission: Int,
         successCallback: CheckPermissionsSuccessCallback
     ) {
         successCallback.onSuccess(determinePermissionStatus(permission))
@@ -322,6 +305,7 @@ class PermissionManager(
      * @param successCallback the callback for returning the permission results.
      * @param errorCallback   the callback to call in case of an error.
      */
+    @SuppressLint("BatteryLife")
     fun requestPermissions(
         permissions: List<Int>,
         successCallback: RequestPermissionsSuccessCallback,
@@ -359,22 +343,17 @@ class PermissionManager(
                 continue
             }
 
-            val names = PermissionUtils.getManifestNames(activity, permission)
+            val names = PermissionUtils.getManifestNames(activity!!, permission)
 
             // check to see if we can find manifest names
             // if we can't add as unknown and continue
-            if (names == null || names.isEmpty()) {
+            if (names.isNullOrEmpty()) {
                 if (!requestResults!!.containsKey(permission)) {
-                    // On Android below M, the android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS flag in AndroidManifest.xml
-                    // may be ignored and not visible to the App as it's a new permission setting as a whole.
-                    if (permission == PermissionConstants.PERMISSION_GROUP_IGNORE_BATTERY_OPTIMIZATIONS && Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-                        requestResults!![permission] = PermissionConstants.PERMISSION_STATUS_RESTRICTED
-                    } else {
-                        requestResults!![permission] = PermissionConstants.PERMISSION_STATUS_DENIED
-                    }
-                    // On Android below R, the android.permission.MANAGE_EXTERNAL_STORAGE flag in AndroidManifest.xml
-                    // may be ignored and not visible to the App as it's a new permission setting as a whole.
-                    if (permission == PermissionConstants.PERMISSION_GROUP_MANAGE_EXTERNAL_STORAGE && Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                    // FIX #1: use `else if` so the MANAGE_EXTERNAL_STORAGE branch cannot silently
+                    // overwrite a RESTRICTED status that was just set by the battery-optimizations branch.
+                    if (permission == PermissionConstants.PERMISSION_GROUP_MANAGE_EXTERNAL_STORAGE
+                        && Build.VERSION.SDK_INT < Build.VERSION_CODES.R
+                    ) {
                         requestResults!![permission] = PermissionConstants.PERMISSION_STATUS_RESTRICTED
                     } else {
                         requestResults!![permission] = PermissionConstants.PERMISSION_STATUS_DENIED
@@ -385,9 +364,9 @@ class PermissionManager(
             }
 
             // Request special permissions.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && permission == PermissionConstants.PERMISSION_GROUP_IGNORE_BATTERY_OPTIMIZATIONS) {
+            if (permission == PermissionConstants.PERMISSION_GROUP_IGNORE_BATTERY_OPTIMIZATIONS) {
                 launchSpecialPermission(
-                    Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                    ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
                     PermissionConstants.PERMISSION_CODE_IGNORE_BATTERY_OPTIMIZATIONS
                 )
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && permission == PermissionConstants.PERMISSION_GROUP_MANAGE_EXTERNAL_STORAGE) {
@@ -395,7 +374,7 @@ class PermissionManager(
                     Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
                     PermissionConstants.PERMISSION_CODE_MANAGE_EXTERNAL_STORAGE
                 )
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && permission == PermissionConstants.PERMISSION_GROUP_SYSTEM_ALERT_WINDOW) {
+            } else if (permission == PermissionConstants.PERMISSION_GROUP_SYSTEM_ALERT_WINDOW) {
                 launchSpecialPermission(
                     Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     PermissionConstants.PERMISSION_CODE_SYSTEM_ALERT_WINDOW
@@ -405,7 +384,7 @@ class PermissionManager(
                     Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
                     PermissionConstants.PERMISSION_CODE_REQUEST_INSTALL_PACKAGES
                 )
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && permission == PermissionConstants.PERMISSION_GROUP_ACCESS_NOTIFICATION_POLICY) {
+            } else if (permission == PermissionConstants.PERMISSION_GROUP_ACCESS_NOTIFICATION_POLICY) {
                 launchSpecialPermission(
                     Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS,
                     PermissionConstants.PERMISSION_CODE_ACCESS_NOTIFICATION_POLICY
@@ -435,20 +414,20 @@ class PermissionManager(
         if (permissionsToRequest.isNotEmpty()) {
             val requestPermissions = permissionsToRequest.toTypedArray()
             ActivityCompat.requestPermissions(
-                activity,
+                activity!!,
                 requestPermissions,
                 PermissionConstants.PERMISSION_CODE
             )
         }
 
         // Post results immediately if no requests are pending.
-        if (successCallback != null && pendingRequestCount == 0) {
+        if (pendingRequestCount == 0) {
             successCallback.onSuccess(requestResults!!)
         }
     }
 
     @PermissionConstants.PermissionStatus
-    private fun determinePermissionStatus(permission: @PermissionConstants.PermissionGroup Int): Int {
+    private fun determinePermissionStatus(@PermissionConstants.PermissionGroup permission: Int): Int {
         if (permission == PermissionConstants.PERMISSION_GROUP_NOTIFICATION) {
             return checkNotificationPermissionStatus()
         }
@@ -487,9 +466,6 @@ class PermissionManager(
             // On Android below M, the android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS flag in AndroidManifest.xml
             // may be ignored and not visible to the App as it's a new permission setting as a whole.
             if (permission == PermissionConstants.PERMISSION_GROUP_IGNORE_BATTERY_OPTIMIZATIONS) {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-                    return PermissionConstants.PERMISSION_STATUS_RESTRICTED
-                }
             }
 
             // On Android below R, the android.permission.MANAGE_EXTERNAL_STORAGE flag in AndroidManifest.xml
@@ -500,10 +476,7 @@ class PermissionManager(
                 }
             }
 
-            return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
-                PermissionConstants.PERMISSION_STATUS_GRANTED
-            else
-                PermissionConstants.PERMISSION_STATUS_DENIED
+            return PermissionConstants.PERMISSION_STATUS_DENIED
         }
 
         val requiresExplicitPermission = context.applicationInfo.targetSdkVersion >= Build.VERSION_CODES.M
@@ -515,21 +488,23 @@ class PermissionManager(
                 if (permission == PermissionConstants.PERMISSION_GROUP_IGNORE_BATTERY_OPTIMIZATIONS) {
                     val packageName = context.packageName
                     val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-                    if (pm != null && pm.isIgnoringBatteryOptimizations(packageName)) {
+                    if (pm.isIgnoringBatteryOptimizations(packageName)) {
                         permissionStatuses.add(PermissionConstants.PERMISSION_STATUS_GRANTED)
                     } else {
                         permissionStatuses.add(PermissionConstants.PERMISSION_STATUS_DENIED)
                     }
                 } else if (permission == PermissionConstants.PERMISSION_GROUP_MANAGE_EXTERNAL_STORAGE) {
+                    // FIX #2: use else-if so RESTRICTED and the isExternalStorageManager check are
+                    // mutually exclusive — on Android < R the API doesn't exist, so we only add RESTRICTED.
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
                         permissionStatuses.add(PermissionConstants.PERMISSION_STATUS_RESTRICTED)
+                    } else {
+                        val status = if (Environment.isExternalStorageManager())
+                            PermissionConstants.PERMISSION_STATUS_GRANTED
+                        else
+                            PermissionConstants.PERMISSION_STATUS_DENIED
+                        permissionStatuses.add(status)
                     }
-
-                     val status = if (Environment.isExternalStorageManager())
-                         PermissionConstants.PERMISSION_STATUS_GRANTED
-                     else
-                         PermissionConstants.PERMISSION_STATUS_DENIED
-                    permissionStatuses.add(status)
                 } else if (permission == PermissionConstants.PERMISSION_GROUP_SYSTEM_ALERT_WINDOW) {
                     val status = if (Settings.canDrawOverlays(context))
                         PermissionConstants.PERMISSION_STATUS_GRANTED
@@ -601,16 +576,14 @@ class PermissionManager(
      * @param requestCode      a request code to verify incoming results.
      */
     private fun launchSpecialPermission(permissionAction: String, requestCode: Int) {
-        if (activity == null) {
-            return
-        }
+        val currentActivity = activity ?: return
 
         val intent = Intent(permissionAction)
         if (permissionAction != Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS) {
-            val packageName = activity.packageName
-            intent.data = Uri.parse("package:$packageName")
+            val packageName = currentActivity.packageName
+            intent.data = "package:$packageName".toUri()
         }
-        activity.startActivityForResult(intent, requestCode)
+        currentActivity.startActivityForResult(intent, requestCode)
         pendingRequestCount++
     }
 
@@ -629,7 +602,7 @@ class PermissionManager(
             return
         }
 
-        val names = PermissionUtils.getManifestNames(activity, permission)
+        val names = PermissionUtils.getManifestNames(activity!!, permission)
 
         // if isn't an android specific group then go ahead and return false;
         if (names == null) {
@@ -644,7 +617,7 @@ class PermissionManager(
             return
         }
 
-        successCallback.onSuccess(ActivityCompat.shouldShowRequestPermissionRationale(activity, names[0]))
+        successCallback.onSuccess(ActivityCompat.shouldShowRequestPermissionRationale(activity!!, names[0]))
     }
 
     @PermissionConstants.PermissionStatus
@@ -670,7 +643,7 @@ class PermissionManager(
     @PermissionConstants.PermissionStatus
     private fun checkBluetoothPermissionStatus(): Int {
         val names = PermissionUtils.getManifestNames(context, PermissionConstants.PERMISSION_GROUP_BLUETOOTH)
-        val missingInManifest = names == null || names.isEmpty()
+        val missingInManifest = names.isNullOrEmpty()
         return if (missingInManifest) {
             Log.d(PermissionConstants.LOG_TAG, "Bluetooth permission missing in manifest")
             PermissionConstants.PERMISSION_STATUS_DENIED

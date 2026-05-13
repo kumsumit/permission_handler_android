@@ -105,7 +105,7 @@ object PermissionConstants {
     const val PERMISSION_STATUS_LIMITED = 3
     const val PERMISSION_STATUS_NEVER_ASK_AGAIN = 4
 
-    @Target(AnnotationTarget.TYPE, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.TYPE_USE)
+    @Target(AnnotationTarget.TYPE, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
     @Retention(AnnotationRetention.SOURCE)
     @IntDef(
         PERMISSION_STATUS_DENIED,
@@ -127,5 +127,6 @@ object PermissionConstants {
         SERVICE_STATUS_ENABLED,
         SERVICE_STATUS_NOT_APPLICABLE
     )
+    @Target(AnnotationTarget.TYPE, AnnotationTarget.FUNCTION, AnnotationTarget.VALUE_PARAMETER)
     annotation class ServiceStatus
 }

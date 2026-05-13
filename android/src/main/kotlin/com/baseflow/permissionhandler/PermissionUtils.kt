@@ -15,6 +15,7 @@ import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import java.util.*
+import androidx.core.content.edit
 
 object PermissionUtils {
     const val SHARED_PREFERENCES_PERMISSION_WAS_DENIED_BEFORE_KEY = "sp_permission_handler_permission_was_denied_before"
@@ -500,10 +501,6 @@ object PermissionUtils {
             return PermissionConstants.PERMISSION_STATUS_DENIED
         }
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return PermissionConstants.PERMISSION_STATUS_DENIED
-        }
-
         val wasDeniedBefore = wasPermissionDeniedBefore(activity, permissionName)
         val shouldShowRational = !isNeverAskAgainSelected(activity, permissionName)
 
@@ -520,7 +517,6 @@ object PermissionUtils {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     fun isNeverAskAgainSelected(
         activity: Activity,
         name: String
@@ -598,6 +594,11 @@ object PermissionUtils {
      */
     private fun setPermissionDenied(context: Context, permissionName: String) {
         val sharedPreferences: SharedPreferences = context.getSharedPreferences(permissionName, Context.MODE_PRIVATE)
-        sharedPreferences.edit().putBoolean(SHARED_PREFERENCES_PERMISSION_WAS_DENIED_BEFORE_KEY, true).apply()
+        sharedPreferences.edit {
+            putBoolean(
+                SHARED_PREFERENCES_PERMISSION_WAS_DENIED_BEFORE_KEY,
+                true
+            )
+        }
     }
 }
