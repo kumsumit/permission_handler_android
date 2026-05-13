@@ -76,6 +76,8 @@ object PermissionUtils {
         Manifest.permission.READ_MEDIA_AUDIO -> PermissionConstants.PERMISSION_GROUP_AUDIO
         Manifest.permission.SCHEDULE_EXACT_ALARM ->
             PermissionConstants.PERMISSION_GROUP_SCHEDULE_EXACT_ALARM
+        Manifest.permission.USE_EXACT_ALARM ->
+            PermissionConstants.PERMISSION_GROUP_SCHEDULE_EXACT_ALARM
         else -> PermissionConstants.PERMISSION_GROUP_UNKNOWN
     }
 
@@ -315,6 +317,11 @@ object PermissionUtils {
                 // not handle permissions on pre Android TIRAMISU devices.
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && hasPermissionInManifest(context, permissionNames, Manifest.permission.READ_MEDIA_IMAGES))
                     permissionNames.add(Manifest.permission.READ_MEDIA_IMAGES)
+
+                // The READ_MEDIA_VISUAL_USER_SELECTED permission is introduced in Android U, meaning we should
+                // not handle permissions on pre Android U devices.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && hasPermissionInManifest(context, permissionNames, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED))
+                    permissionNames.add(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
             }
 
             PermissionConstants.PERMISSION_GROUP_VIDEOS -> {
@@ -322,6 +329,11 @@ object PermissionUtils {
                 // not handle permissions on pre Android TIRAMISU devices.
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && hasPermissionInManifest(context, permissionNames, Manifest.permission.READ_MEDIA_VIDEO))
                     permissionNames.add(Manifest.permission.READ_MEDIA_VIDEO)
+
+                // The READ_MEDIA_VISUAL_USER_SELECTED permission is introduced in Android U, meaning we should
+                // not handle permissions on pre Android U devices.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && hasPermissionInManifest(context, permissionNames, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED))
+                    permissionNames.add(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
             }
 
             PermissionConstants.PERMISSION_GROUP_AUDIO -> {
@@ -337,6 +349,10 @@ object PermissionUtils {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         permissionNames.add(Manifest.permission.SCHEDULE_EXACT_ALARM)
                     }
+
+                // Calendar and alarm clock apps can use the normal USE_EXACT_ALARM permission.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && hasPermissionInManifest(context, permissionNames, Manifest.permission.USE_EXACT_ALARM))
+                    permissionNames.add(Manifest.permission.USE_EXACT_ALARM)
             }
 
             PermissionConstants.PERMISSION_GROUP_MEDIA_LIBRARY,
@@ -349,7 +365,7 @@ object PermissionUtils {
         return permissionNames
     }
 
-    private fun hasPermissionInManifest(context: Context, confirmedPermissions: ArrayList<String>, permission: String): Boolean {
+    private fun hasPermissionInManifest(context: Context, confirmedPermissions: ArrayList<String>?, permission: String): Boolean {
         try {
             if (confirmedPermissions != null) {
                 for (r in confirmedPermissions) {
@@ -357,11 +373,6 @@ object PermissionUtils {
                         return true
                     }
                 }
-            }
-
-            if (context == null) {
-                Log.d(PermissionConstants.LOG_TAG, "Unable to detect current Activity or App Context.")
-                return false
             }
 
             val info = getPackageInfo(context)
@@ -372,8 +383,9 @@ object PermissionUtils {
             }
 
             val requestedPermissions = info.requestedPermissions ?: return false
-            confirmedPermissions.addAll(Arrays.asList(*requestedPermissions))
-            for (r in confirmedPermissions) {
+            val permissionsToInspect = confirmedPermissions ?: ArrayList()
+            permissionsToInspect.addAll(Arrays.asList(*requestedPermissions))
+            for (r in permissionsToInspect) {
                 if (r == permission) {
                     return true
                 }

@@ -66,12 +66,12 @@ class PermissionManager(
         when (requestCode) {
             PermissionConstants.PERMISSION_CODE_IGNORE_BATTERY_OPTIMIZATIONS -> {
                 permission = PermissionConstants.PERMISSION_GROUP_IGNORE_BATTERY_OPTIMIZATIONS
-                    val packageName = context.packageName
-                        val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-                        if (pm.isIgnoringBatteryOptimizations(packageName))
-                            PermissionConstants.PERMISSION_STATUS_GRANTED
-                        else
-                            PermissionConstants.PERMISSION_STATUS_DENIED
+                val packageName = context.packageName
+                val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+                status = if (pm.isIgnoringBatteryOptimizations(packageName))
+                    PermissionConstants.PERMISSION_STATUS_GRANTED
+                else
+                    PermissionConstants.PERMISSION_STATUS_DENIED
             }
 
             PermissionConstants.PERMISSION_CODE_MANAGE_EXTERNAL_STORAGE -> {
@@ -390,23 +390,27 @@ class PermissionManager(
                     PermissionConstants.PERMISSION_CODE_ACCESS_NOTIFICATION_POLICY
                 )
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && permission == PermissionConstants.PERMISSION_GROUP_SCHEDULE_EXACT_ALARM) {
-                launchSpecialPermission(
-                    Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
-                    PermissionConstants.PERMISSION_CODE_SCHEDULE_EXACT_ALARM
-                )
+                if (names.contains(Manifest.permission.SCHEDULE_EXACT_ALARM)) {
+                    launchSpecialPermission(
+                        Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                        PermissionConstants.PERMISSION_CODE_SCHEDULE_EXACT_ALARM
+                    )
+                } else {
+                    requestResults!![permission] = PermissionConstants.PERMISSION_STATUS_DENIED
+                }
             } else if (permission == PermissionConstants.PERMISSION_GROUP_CALENDAR_FULL_ACCESS || permission == PermissionConstants.PERMISSION_GROUP_CALENDAR) {
                 // Deny CALENDAR_FULL_ACCESS permission if manifest is not listing both write- and read permissions.
                 val isValidManifest = isValidManifestForCalendarFullAccess()
                 if (isValidManifest) {
-                    permissionsToRequest.add(Manifest.permission.WRITE_CALENDAR)
-                    permissionsToRequest.add(Manifest.permission.READ_CALENDAR)
-                    pendingRequestCount += 2
+                    addRuntimePermissionsToRequest(
+                        permissionsToRequest,
+                        listOf(Manifest.permission.WRITE_CALENDAR, Manifest.permission.READ_CALENDAR)
+                    )
                 } else {
                     requestResults!![permission] = PermissionConstants.PERMISSION_STATUS_DENIED
                 }
             } else {
-                permissionsToRequest.addAll(names)
-                pendingRequestCount += names.size
+                addRuntimePermissionsToRequest(permissionsToRequest, names)
             }
         }
 
@@ -538,18 +542,8 @@ class PermissionManager(
                         permissionStatuses.add(PermissionConstants.PERMISSION_STATUS_GRANTED)
                     }
                 } else if (permission == PermissionConstants.PERMISSION_GROUP_PHOTOS || permission == PermissionConstants.PERMISSION_GROUP_VIDEOS) {
-                    val permissionStatus = ContextCompat.checkSelfPermission(context, name)
-                    var permissionStatusLimited = permissionStatus
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                        permissionStatusLimited = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
-                    }
-                    if (permissionStatusLimited == PackageManager.PERMISSION_GRANTED && permissionStatus == PackageManager.PERMISSION_DENIED) {
-                        permissionStatuses.add(PermissionConstants.PERMISSION_STATUS_LIMITED)
-                    } else if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
-                        permissionStatuses.add(PermissionConstants.PERMISSION_STATUS_GRANTED)
-                    } else {
-                        permissionStatuses.add(PermissionUtils.determineDeniedVariant(activity, name))
-                    }
+                    permissionStatuses.add(determinePhotoVideoPermissionStatus(names))
+                    break
                 } else {
                     val permissionStatus = ContextCompat.checkSelfPermission(context, name)
                     if (permissionStatus != PackageManager.PERMISSION_GRANTED) {
@@ -618,6 +612,51 @@ class PermissionManager(
         }
 
         successCallback.onSuccess(ActivityCompat.shouldShowRequestPermissionRationale(activity!!, names[0]))
+    }
+
+    private fun addRuntimePermissionsToRequest(
+        permissionsToRequest: MutableList<String>,
+        names: List<String>
+    ) {
+        for (name in names) {
+            if (!permissionsToRequest.contains(name)) {
+                permissionsToRequest.add(name)
+                pendingRequestCount++
+            }
+        }
+    }
+
+    @PermissionConstants.PermissionStatus
+    private fun determinePhotoVideoPermissionStatus(names: List<String>): Int {
+        val visualUserSelectedGranted =
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+                names.contains(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED) &&
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+                ) == PackageManager.PERMISSION_GRANTED
+
+        val permissionStatuses: MutableSet<@PermissionConstants.PermissionStatus Int> = HashSet()
+        for (name in names) {
+            if (name == Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED) {
+                continue
+            }
+
+            val permissionStatus = ContextCompat.checkSelfPermission(context, name)
+            if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
+                permissionStatuses.add(PermissionConstants.PERMISSION_STATUS_GRANTED)
+            } else if (visualUserSelectedGranted) {
+                permissionStatuses.add(PermissionConstants.PERMISSION_STATUS_LIMITED)
+            } else {
+                permissionStatuses.add(PermissionUtils.determineDeniedVariant(activity, name))
+            }
+        }
+
+        return if (permissionStatuses.isEmpty()) {
+            PermissionConstants.PERMISSION_STATUS_DENIED
+        } else {
+            PermissionUtils.strictestStatus(permissionStatuses)
+        }
     }
 
     @PermissionConstants.PermissionStatus
